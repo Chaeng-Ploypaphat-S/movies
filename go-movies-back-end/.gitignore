@@ -37,3 +37,6 @@ Thumbs.db
 .idea/
 *.swp
 *.s*
+
+# Postgres data
+postgres-data/
