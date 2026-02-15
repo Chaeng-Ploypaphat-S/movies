@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 )
 
@@ -25,7 +24,7 @@ func (app *appliation) Home(w http.ResponseWriter, r *http.Request) {
 func (app *appliation) AllMovies(w http.ResponseWriter, r *http.Request) {
 	movies, err := app.DB.AllMovies()
 	if err != nil {
-		fmt.Println("Cannot get all moviesd")
+		app.errorJSON(w, err)
 		return
 	}
 
