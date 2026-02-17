@@ -10,7 +10,7 @@ type jsonResponse struct {
 	Version string `json:"version"`
 }
 
-func (app *appliation) Home(w http.ResponseWriter, r *http.Request) {
+func (app *application) Home(w http.ResponseWriter, r *http.Request) {
 
 	payload := jsonResponse{
 		Status:  "active",
@@ -21,7 +21,7 @@ func (app *appliation) Home(w http.ResponseWriter, r *http.Request) {
 	_ = app.writeJSON(w, http.StatusOK, payload)
 }
 
-func (app *appliation) AllMovies(w http.ResponseWriter, r *http.Request) {
+func (app *application) AllMovies(w http.ResponseWriter, r *http.Request) {
 	movies, err := app.DB.AllMovies()
 	if err != nil {
 		app.errorJSON(w, err)

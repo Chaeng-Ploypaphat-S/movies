@@ -11,7 +11,7 @@ import (
 
 const port = 8080
 
-type appliation struct {
+type application struct {
 	DSN    string
 	Domain string
 	DB     repository.DatabaseRepo
@@ -19,7 +19,7 @@ type appliation struct {
 
 func main() {
 	// config
-	var app appliation
+	var app application
 
 	// read from command line
 	flag.StringVar(&app.DSN, "dsn", "host=localhost port=5432 user=postgres password=postgres dbname=movies sslmode=disable timezone=UTC connect_timeout=5", "Postgres connection string")
@@ -31,6 +31,8 @@ func main() {
 	}
 	app.DB = &dbrepo.PostgresDBRepo{DB: conn}
 	defer app.DB.Connection().Close()
+
+	fmt.Println("Connected to the database")
 
 	// connect to the database
 	app.Domain = "example.com"
