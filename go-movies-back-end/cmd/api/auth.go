@@ -82,11 +82,11 @@ func (j *Auth) GenerateTokenPair(user *jwtUser) (TokenPairs, error) {
 	return tokenPairs, nil
 }
 
-func (j *Auth) GetRefreshCookie(refresToken string) *http.Cookie {
+func (j *Auth) GetRefreshCookie(refreshToken string) *http.Cookie {
 	return &http.Cookie{
 		Name:     j.CookieName,
 		Path:     j.CookiePath,
-		Value:    refresToken,
+		Value:    refreshToken,
 		Expires:  time.Now().Add(j.RefreshExpiry),
 		MaxAge:   int(j.RefreshExpiry.Seconds()),
 		SameSite: http.SameSiteStrictMode,

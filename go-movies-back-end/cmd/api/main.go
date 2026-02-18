@@ -47,7 +47,7 @@ func main() {
 
 	app.auth = Auth{
 		Issuer:        app.JWTIssuer,
-		Audience:      app.auth.Audience,
+		Audience:      app.JWTAudience,
 		Secret:        app.JWTSecret,
 		TokenExpiry:   time.Minute * 15,
 		RefreshExpiry: time.Hour * 24,

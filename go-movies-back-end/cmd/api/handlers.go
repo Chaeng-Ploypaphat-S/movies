@@ -5,15 +5,12 @@ import (
 	"net/http"
 )
 
-type jsonResponse struct {
-	Status  string `json:"status"`
-	Message string `json:"message"`
-	Version string `json:"version"`
-}
-
 func (app *application) Home(w http.ResponseWriter, r *http.Request) {
-
-	payload := jsonResponse{
+	var payload = struct {
+		Status  string `json:"status"`
+		Message string `json:"message"`
+		Version string `json:"version"`
+	}{
 		Status:  "active",
 		Message: "Go Movies Updated",
 		Version: "1.0.1",
