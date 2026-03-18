@@ -3,8 +3,9 @@ package main
 import (
 	"errors"
 	"net/http"
-	"github.com/golang-jwt/jwt/v4"
 	"strconv"
+
+	"github.com/golang-jwt/jwt/v4"
 )
 
 func (app *application) Home(w http.ResponseWriter, r *http.Request) {
@@ -84,7 +85,7 @@ func (app *application) refreshToken(w http.ResponseWriter, r *http.Request) {
 			refreshToken := cookie.Value
 
 			// parse the token to get the claims
-			_, err := jwt.ParseWithClaims(refreshToken, claims, func(token *jwt.Token) (interface{}, error){
+			_, err := jwt.ParseWithClaims(refreshToken, claims, func(token *jwt.Token) (interface{}, error) {
 				return []byte(app.JWTSecret), nil
 			})
 			if err != nil {
@@ -120,6 +121,13 @@ func (app *application) refreshToken(w http.ResponseWriter, r *http.Request) {
 			http.SetCookie(w, app.auth.GetRefreshCookie(tokenPairs.RefreshToken))
 
 			app.writeJSON(w, http.StatusOK, tokenPairs)
+			return
 		}
 	}
+	app.errorJSON(w, errors.New("unauthorized"), http.StatusUnauthorized)
+}
+
+func (app *application) logout(w http.ResponseWriter, r *http.Request) {
+	http.SetCookie(w, app.auth.GetExpiredRefreshCookie())
+	w.WriteHeader(http.StatusAccepted)
 }
