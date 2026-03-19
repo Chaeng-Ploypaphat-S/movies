@@ -2,6 +2,8 @@ package main
 
 import (
 	"errors"
+	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -41,6 +43,7 @@ func (app *application) authenticate(w http.ResponseWriter, r *http.Request) {
 	err := app.readJSON(w, r, &requestPayload)
 	if err != nil {
 		app.errorJSON(w, err, http.StatusBadRequest)
+		return
 	}
 
 	// validate user against database
@@ -73,6 +76,10 @@ func (app *application) authenticate(w http.ResponseWriter, r *http.Request) {
 
 	refreshCookie := app.auth.GetRefreshCookie(tokens.RefreshToken)
 	http.SetCookie(w, refreshCookie)
+
+	fmt.Print("handler.go")
+	fmt.Print(tokens)
+	log.Printf("token pairs: %+v\n", tokens)
 
 	app.writeJSON(w, http.StatusAccepted, tokens)
 }
@@ -112,15 +119,15 @@ func (app *application) refreshToken(w http.ResponseWriter, r *http.Request) {
 				LastName:  user.LastName,
 			}
 
-			tokenPairs, err := app.auth.GenerateTokenPair(&u)
+			tokens, err := app.auth.GenerateTokenPair(&u)
 			if err != nil {
 				app.errorJSON(w, errors.New("error generating tokens"), http.StatusUnauthorized)
 				return
 			}
 
-			http.SetCookie(w, app.auth.GetRefreshCookie(tokenPairs.RefreshToken))
+			http.SetCookie(w, app.auth.GetRefreshCookie(tokens.RefreshToken))
 
-			app.writeJSON(w, http.StatusOK, tokenPairs)
+			app.writeJSON(w, http.StatusOK, tokens)
 			return
 		}
 	}
