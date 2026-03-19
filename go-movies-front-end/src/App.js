@@ -8,6 +8,9 @@ function App() {
   const [alertMessage, setAlertMessage] = useState("");
   const [alertClassName, setAlertClassName] = useState("d-none");
 
+  const [ticking, setTicking] = useState(false);
+  const [tickInterval, setTickInterval] = useState();
+
   const navigate = useNavigate();
 
   const logOut = () => {
@@ -21,8 +24,8 @@ function App() {
     })
     .finally(() => {
       setJwtToken("")
+      navigate("/login")
     })
-    navigate("/login")
     }
 
     useEffect(() => {
@@ -33,7 +36,10 @@ function App() {
         };
 
         fetch("/refresh", requestOptions)
-            .then((response) => response.json())
+            .then((response) => {
+              if (response.status === 401) return;
+              return response.json();
+            })
             .then((data) => {
                 if (data.access_token) {
                     setJwtToken(data.access_token);
@@ -43,7 +49,32 @@ function App() {
                 console.log("user is not logged in", error);
             });
       }
-    }, [jwtToken])
+    }, [jwtToken, navigate])
+
+    const toggleRefresh = () => {
+      console.log("clicked");
+
+      if (!ticking) {
+        console.log("turning on ticking now ...")
+        let i = setInterval(() => {
+          console.log("this will run every second");
+        }, 1000); // runs every 1 second
+        setTickInterval(i);
+        console.log("turning off tickInterval", tickInterval);
+        setTicking(true);
+      } else {
+        console.log("turning off ticking now ...")
+        setTickInterval(null);
+        clearInterval(tickInterval);
+        setTicking(false);
+      }
+    }
+
+    useEffect(() => {
+      return () => {
+        if (tickInterval) clearInterval(tickInterval);
+      };
+    }, [tickInterval]);
 
   return (
     <div className="container">
@@ -82,6 +113,7 @@ function App() {
           </nav>
         </div>
         <div className="col-md-10">
+          <a className="btn btn-outline-secondary" href="#!" onClick={toggleRefresh}>Toggle Ticking</a>
           <Alert
             message={alertMessage}
             className={alertClassName}
