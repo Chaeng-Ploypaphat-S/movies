@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 const Movies = () => {
-    const [movies, setMovies] = useState([])
+    const [movies, setMovies] = useState([]);
 
     useEffect(() => {
         const headers = new Headers()
@@ -22,7 +22,7 @@ const Movies = () => {
             console.log(err)
         })
 
-    }, [])
+    }, []);
 
     return (
         <>
@@ -53,7 +53,7 @@ const Movies = () => {
             </table>
         </div>
         </>
-    )
+    );
 }
 
 export default Movies;
