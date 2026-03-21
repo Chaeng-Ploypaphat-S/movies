@@ -5,7 +5,7 @@ const Select = (props) => {
                 {props.title}
             </label>
             <select 
-                className="form-selecgt"
+                className="form-select"
                 name={props.name}
                 id={props.name}
                 value={props.value}
