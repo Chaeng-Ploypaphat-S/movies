@@ -27,12 +27,13 @@ func (app *application) routes() http.Handler {
 	mux.Get("/logout", app.logout)
 
 	mux.Get("/movies", app.AllMovies)
+	mux.Get("/movies/{id}", app.GetMovie)
 
+	// Admin mode only (required authorization)
 	mux.Route("/admin", func(mux chi.Router) {
 		mux.Use(app.authRequired)
-
-		// If the requester has all the required authorization, they get 'movies'
 		mux.Get("/movies", app.MovieCetalog)
+		mux.Get("/movies/{id}", app.MovieForEdit)
 	})
 
 	return mux

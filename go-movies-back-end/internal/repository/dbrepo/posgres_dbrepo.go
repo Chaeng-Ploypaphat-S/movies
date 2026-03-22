@@ -69,7 +69,7 @@ func (m *PostgresDBRepo) OneMovie(id int) (*models.Movie, error) {
 	defer cancel()
 
 	query := `select id, title, release_date, runtime, mpaa_rating,
-	          description, coalesce(image, ''), created_at, update_at 
+	          description, coalesce(image, ''), created_at, updated_at 
 			  from movies where id = $1`
 
 	row := m.DB.QueryRowContext(ctx, query, id)
@@ -183,7 +183,7 @@ func (m *PostgresDBRepo) OneMovieForEdit(id int) (*models.Movie, []*models.Genre
 	movie.Genres = genres
 	movie.GenresArray = genresArray
 
-	query = "select id, genre, from genres order by genre"
+	query = "select id, genre from genres order by genre"
 	gRows, err := m.DB.QueryContext(ctx, query)
 	if err != nil {
 		return nil, nil, err
