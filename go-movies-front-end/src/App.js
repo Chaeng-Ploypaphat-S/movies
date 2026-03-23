@@ -51,7 +51,7 @@ function App() {
               .catch((error) => {
                   console.log("user is not logged in", error);
               })
-        }, 1000); // runs every 1 second
+        }, 600000); // runs every 10 min.
         setTickInterval(i);
         console.log("turning off tickInterval", tickInterval);
       } else {

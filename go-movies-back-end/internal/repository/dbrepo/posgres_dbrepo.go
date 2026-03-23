@@ -23,9 +23,9 @@ func (m *PostgresDBRepo) AllGenres() ([]*models.Genre, error) {
 
 	query := `
 		select 
-			id, genre, checked, created_at, updated_at
+			id, genre, created_at, updated_at
 		from
-			Genre
+			genres
 		order by
 			genre
 		`
@@ -41,7 +41,6 @@ func (m *PostgresDBRepo) AllGenres() ([]*models.Genre, error) {
 		err := rows.Scan(
 			&g.ID,
 			&g.Genre,
-			&g.Checked,
 			&g.CreatedAt,
 			&g.UpdatedAt,
 		)
@@ -128,7 +127,7 @@ func (m *PostgresDBRepo) OneMovie(id int) (*models.Movie, error) {
 		return nil, err
 	}
 
-	query = `select g.id, g.genre from movies_genres mg
+	query = `select mg.id, mg.genre_id from movies_genres mg
 	         left join genres g on (mg.genre_id = g.id)
 			 where mg.movie_id = $1
 			 order by g.genre`
@@ -187,8 +186,8 @@ func (m *PostgresDBRepo) OneMovieForEdit(id int) (*models.Movie, []*models.Genre
 		return nil, nil, err
 	}
 
-	query = `select g.id, g.genre from movies_genres mg
-	         left join genres g on (mg.genre_id = g.id)
+	query = `select mg.id, mg.genre from movies_genres mg
+	         left join genre g on (mg.genre_id = g.id)
 			 where mg.movie_id = $1
 			 order by g.genre`
 
