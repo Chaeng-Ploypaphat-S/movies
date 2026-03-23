@@ -18,7 +18,7 @@ const Input = forwardRef((props, ref) => {
                 autoComplete={props.autoComplete}
                 value={props.value}
             />
-            <div className={props.errorDiv}>{props.errorDiv}</div>
+            <div className={props.errorDiv}>{props.errorMsg}</div>
         </div>
         </>
     )

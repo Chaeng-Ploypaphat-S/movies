@@ -1,9 +1,9 @@
 import Input from "./form/Input";
 import Select from "./form/Select";
 import Checkbox from "./form/Checkbox";
+import TextArea from "./form/TextArea";
 import { useEffect, useState } from "react";
 import { useNavigate, useOutletContext, useParams } from "react-router-dom";
-import TextArea from "./form/TextArea";
 
 const EditMovie = () => {
     const navigate = useNavigate();
@@ -102,6 +102,38 @@ const EditMovie = () => {
     // handle submitting the form
     const handleSubmit = (event) => {
         event.preventDefault();
+
+        // ensure all the required fields are provided
+        let errors = [];
+        let required = [
+            {field: movie.title, name: "title"},
+            {field: movie.release_date, name: "release_date"},
+            {field: movie.runtime, name: "runtime"},
+            {field: movie.description, name: "description"},
+            {field: movie.mpaa_rating, name: "mpaa_rating"},
+        ]
+
+        required.forEach(function (obj) {
+            if (obj.field === "") {
+                errors.push(obj.name);
+            } else {
+                console.log(obj.field)
+                console.log(obj.name)
+            }
+        })
+
+        // at least one checkbox should be selected
+        if (movie.genres_array.length === 0) {
+            alert("You must choose at least one genre")
+            errors.push("genres")
+        }
+
+        setErrors(errors)
+        // if there is at least an error, no need to proceed
+        if (errors.length > 0) {
+            return false
+        }
+
     }
 
     const handleChange = () => (event) => {
@@ -148,7 +180,7 @@ const EditMovie = () => {
                     name={"title"}
                     value={movie.title}
                     onChange={handleChange("title")}
-                    errorDiv={hasError("title") ? "text-dander" : "d-none"}
+                    errorDiv={hasError("title") ? "text-danger" : "d-none"}
                     errorMsg={"Please enter a title"}
                 />
                 <Input 
@@ -158,17 +190,17 @@ const EditMovie = () => {
                     name={"release_date"}
                     value={movie.release_date}
                     onChange={handleChange("release_date")}
-                    errorDiv={hasError("release_date") ? "text-dander" : "d-none"}
+                    errorDiv={hasError("release_date") ? "text-danger" : "d-none"}
                     errorMsg={"Please enter a release date"}
                 />
                 <Input 
-                    title={"Rumtime"}
+                    title={"Runtime"}
                     className={"form-control"}
                     type={"text"}
                     name={"runtime"}
                     value={movie.runtime}
                     onChange={handleChange("runtime")}
-                    errorDiv={hasError("runtime") ? "text-dander" : "d-none"}
+                    errorDiv={hasError("runtime") ? "text-danger" : "d-none"}
                     errorMsg={"Please enter a runtime"}
                 />
 
@@ -179,7 +211,7 @@ const EditMovie = () => {
                     onChange={handleChange("mpaa_rating")}
                     placeHolder={"Choose..."}
                     errorMsg={"Please enter a runtime"}
-                    errorDiv={hasError("mpaa_rating") ? "text-dander" : "d-none"}
+                    errorDiv={hasError("mpaa_rating") ? "text-danger" : "d-none"}
                 />
                 <TextArea
                     title="Description"
@@ -191,7 +223,7 @@ const EditMovie = () => {
                     errorDiv={hasError("description") ? "text-danger" : "d-none"}
                 />
                 <hr />
-                <h3>Ganres</h3>
+                <h3>Genres</h3>
                 <hr />
                 {movie.genres && movie.genres.length > 1 &&
                     <>
@@ -208,6 +240,9 @@ const EditMovie = () => {
                         )}
                     </>
                 }
+                <hr  />
+                <button className="btn btn-primary">Save</button>
+                <hr  />
             </form>
         </div>
     )
