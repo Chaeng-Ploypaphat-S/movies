@@ -296,3 +296,32 @@ func (m *PostgresDBRepo) GetUserByID(userID int) (*models.User, error) {
 
 	return &user, nil
 }
+
+func (m *PostgresDBRepo) InsertMovie(movie models.Movie) (int, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	statement := `
+        insert into movies (title, release_date, runtime, mpaa_rating, description, image, created_at, updated_at)
+        values ($1, $2, $3, $4, $5, $6, $7, $8)
+        returning id
+    `
+
+	var newID int
+	err := m.DB.QueryRowContext(ctx, statement,
+		movie.Title,
+		movie.Description,
+		movie.ReleaseDate,
+		movie.RunTime,
+		movie.MPAARating,
+		time.Now(),
+		time.Now(),
+		movie.Image,
+	).Scan(&newID)
+
+	if err != nil {
+		return 0, err
+	}
+
+	return newID, nil
+}
