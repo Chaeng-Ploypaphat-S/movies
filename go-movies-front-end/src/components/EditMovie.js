@@ -4,6 +4,7 @@ import Checkbox from "./form/Checkbox";
 import TextArea from "./form/TextArea";
 import { useEffect, useState } from "react";
 import { useNavigate, useOutletContext, useParams } from "react-router-dom";
+import Swal from "sweetalert2"
 
 const EditMovie = () => {
     const navigate = useNavigate();
@@ -117,15 +118,20 @@ const EditMovie = () => {
             if (obj.field === "") {
                 errors.push(obj.name);
             } else {
-                console.log(obj.field)
-                console.log(obj.name)
+                console.log(obj.field);
+                console.log(obj.name);
             }
         })
 
         // at least one checkbox should be selected
         if (movie.genres_array.length === 0) {
-            alert("You must choose at least one genre")
-            errors.push("genres")
+            Swal.fire({
+                title: 'Error!',
+                text: 'You must choose at least one genre',
+                icon: 'error',
+                confirmButtonText: 'OK',
+            })
+            errors.push("genres");
         }
 
         setErrors(errors)
