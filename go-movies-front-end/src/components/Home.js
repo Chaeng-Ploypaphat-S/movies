@@ -8,7 +8,11 @@ const Home = () => {
             <h2>Find a movie to watch tonight!</h2>
             <hr />
             <Link to="/movies">
-            <img src={Ticket} alt="movie ticket"></img>
+                <img 
+                    src={Ticket} 
+                    alt="movie ticket"
+                    style={{ borderRadius: "20px" }}
+                ></img>
             </Link>
         </div>
         </>
