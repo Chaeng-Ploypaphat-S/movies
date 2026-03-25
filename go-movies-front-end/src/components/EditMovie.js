@@ -200,7 +200,6 @@ const EditMovie = () => {
 
         setMovie({
             ...movie,
-            release_date: new Date(movie.release_date).toISOString(),
             genres_array: tmpIDs,
         })
     }

@@ -127,7 +127,7 @@ func (m *PostgresDBRepo) OneMovie(id int) (*models.Movie, error) {
 		return nil, err
 	}
 
-	query = `select mg.id, mg.genre_id from movies_genres mg
+	query = `select g.id, g.genre from movies_genres mg
 	         left join genres g on (mg.genre_id = g.id)
 			 where mg.movie_id = $1
 			 order by g.genre`
