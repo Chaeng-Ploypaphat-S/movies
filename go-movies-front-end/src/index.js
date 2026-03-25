@@ -1,16 +1,17 @@
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import { createBrowserRouter, RouterProvider} from 'react-router-dom'
+import { RouterProvider, createBrowserRouter } from 'react-router-dom'
+
 import App from './App';
+import EditMovie from './components/EditMovie';
 import ErrorPage from './components/ErrorPage';
-import Home from './components/Home'
-import Movie from './components/Movie';
-import Movies from './components/Movies';
 import Genres from './components/Genres';
 import GraphQL from './components/GraphQL';
-import EditMovie from './components/EditMovie';
-import ManageCatalogue from './components/ManageCatalogue';
+import Home from './components/Home'
 import Login from './components/Login';
+import ManageCatalogue from './components/ManageCatalogue';
+import Movie from './components/Movie';
+import Movies from './components/Movies';
+import React from 'react';
+import ReactDOM from 'react-dom/client';
 
 const router = createBrowserRouter([
   {

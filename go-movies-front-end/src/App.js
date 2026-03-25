@@ -1,7 +1,7 @@
-import { Outlet, Link, useNavigate } from 'react-router-dom';
+import { Link, Outlet, useNavigate } from 'react-router-dom';
 import { useCallback, useEffect, useState } from "react";
-import Alert from './components/Alert';
 
+import Alert from './components/Alert';
 
 function App() {
   const [jwtToken, setJwtToken] = useState("");
