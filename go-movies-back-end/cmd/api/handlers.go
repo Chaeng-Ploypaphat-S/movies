@@ -2,6 +2,7 @@ package main
 
 import (
 	"backend/internal/models"
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -142,10 +143,14 @@ func (app *application) refreshToken(w http.ResponseWriter, r *http.Request) {
 
 func (app *application) logout(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, app.auth.GetExpiredRefreshCookie())
-	w.WriteHeader(http.StatusAccepted)
+	resp := JSONResponse{
+		Error:   false,
+		Message: "logged out",
+	}
+	app.writeJSON(w, http.StatusOK, resp)
 }
 
-func (app *application) MovieCetalog(w http.ResponseWriter, r *http.Request) {
+func (app *application) MovieCatalogue(w http.ResponseWriter, r *http.Request) {
 	movies, err := app.DB.AllMovies()
 	if err != nil {
 		app.errorJSON(w, err)
@@ -210,9 +215,18 @@ func (app *application) AllGenres(w http.ResponseWriter, r *http.Request) {
 func (app *application) InsertMovie(w http.ResponseWriter, r *http.Request) {
 	var movie models.Movie
 
+	// log the raw request body before parsing
+	body, request_err := io.ReadAll(r.Body)
+	if request_err != nil {
+		app.errorJSON(w, fmt.Errorf("failed to read request body: %w", request_err), http.StatusBadRequest)
+		return
+	}
+	log.Println("raw request body:", string(body))
+	r.Body = io.NopCloser(bytes.NewBuffer(body))
+
 	err := app.readJSON(w, r, &movie)
 	if err != nil {
-		app.errorJSON(w, err)
+		app.errorJSON(w, fmt.Errorf("failed to read movie payload from request body: %w", err), http.StatusBadRequest)
 		return
 	}
 
@@ -221,21 +235,22 @@ func (app *application) InsertMovie(w http.ResponseWriter, r *http.Request) {
 	movie.UpdatedAt = time.Now()
 
 	// insert the movie
+	fmt.Println("movie before inserting: ", movie)
 	newID, err := app.DB.InsertMovie(movie)
 	if err != nil {
-		app.errorJSON(w, err)
+		app.errorJSON(w, fmt.Errorf("failed to insert movie id %d: %w", newID, err))
 		return
 	}
 
 	err = app.DB.UpdateMovieGenres(newID, movie.GenresArray)
 	if err != nil {
-		app.errorJSON(w, err)
+		app.errorJSON(w, fmt.Errorf("failed to update genres for movie id %d: %w", newID, err))
 		return
 	}
 
 	resp := JSONResponse{
 		Error:   false,
-		Message: fmt.Sprintf("new movie inserted: ", newID),
+		Message: fmt.Sprintf("new movie inserted: %d", newID),
 	}
 
 	app.writeJSON(w, http.StatusAccepted, resp)

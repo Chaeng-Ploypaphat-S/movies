@@ -34,7 +34,8 @@ func (app *application) routes() http.Handler {
 	// Admin mode only (required authorization)
 	mux.Route("/admin", func(mux chi.Router) {
 		mux.Use(app.authRequired)
-		mux.Get("/movies", app.MovieCetalog)
+
+		mux.Get("/movies", app.MovieCatalogue)
 		mux.Get("/movies/{id}", app.MovieForEdit)
 		mux.Put("/movies/0", app.InsertMovie)
 	})

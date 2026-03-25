@@ -33,8 +33,8 @@ const EditMovie = () => {
         mpaa_rating: "",
         description: "",
         genres: [],
-        genres_array: [Array(13).fill(false)]
-    });
+        genres_array: [Array(13).fill(false)],
+    })
 
     // get id from the URL
     let {id} = useParams();
@@ -47,6 +47,7 @@ const EditMovie = () => {
         // if not authorized, return to the login page
         if (jwtToken === "") {
             navigate("/login")
+            return;
         }
 
         if (id === 0) {
@@ -59,7 +60,7 @@ const EditMovie = () => {
                 mpaa_rating: "",
                 description: "",
                 genres: [],
-                genres_array: [Array(13).fill(false)]        
+                genres_array: [Array(13).fill(false)],
             })
 
             const headers = new Headers();
@@ -140,6 +141,37 @@ const EditMovie = () => {
             return false
         }
 
+        // save changes using admin-mode
+        const headers = new Headers();
+        headers.append("Content-Type", "application/json");
+        headers.append("Authorization", "Bearer " + jwtToken);
+        const method = movie.id > 0 ? "PATCH" : "PUT";
+
+        const requestBody = {
+            ...movie,
+            release_date: new Date(movie.release_date).toISOString(),
+            runtime: parseInt(movie.runtime, 10),
+        }
+
+        let requestOptions = {
+            body: JSON.stringify(requestBody),
+            method: method,
+            headers: headers,
+            credentials: "include",
+        }
+
+        fetch(`/admin/movies/${movie.id}`, requestOptions)
+            .then((response) => response.json())
+            .then((data) => {
+                if (data.error) {
+                    console.log(data.error);
+                } else {
+                    navigate("/manage-catalogue");
+                }
+            })
+            .catch(err => {
+                console.log(err);
+            })
     }
 
     const handleChange = () => (event) => {
@@ -168,6 +200,7 @@ const EditMovie = () => {
 
         setMovie({
             ...movie,
+            release_date: new Date(movie.release_date).toISOString(),
             genres_array: tmpIDs,
         })
     }

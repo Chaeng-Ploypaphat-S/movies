@@ -303,20 +303,19 @@ func (m *PostgresDBRepo) InsertMovie(movie models.Movie) (int, error) {
 
 	statement := `
         insert into movies (title, release_date, runtime, mpaa_rating, description, image, created_at, updated_at)
-        values ($1, $2, $3, $4, $5, $6, $7, $8)
+        values ($1, $2::date, $3, $4, $5, $6, $7, $8)
         returning id
     `
-
 	var newID int
 	err := m.DB.QueryRowContext(ctx, statement,
 		movie.Title,
-		movie.Description,
 		movie.ReleaseDate,
 		movie.RunTime,
 		movie.MPAARating,
-		time.Now(),
-		time.Now(),
+		movie.Description,
 		movie.Image,
+		time.Now(),
+		time.Now(),
 	).Scan(&newID)
 
 	if err != nil {
