@@ -1,6 +1,5 @@
-import { useEffect, useState } from "react";
 import { Link, useNavigate, useOutletContext } from "react-router-dom";
-
+import { useEffect, useState } from "react";
 
 const ManageCatalogue = () => {
     const [movies, setMovies] = useState([]);

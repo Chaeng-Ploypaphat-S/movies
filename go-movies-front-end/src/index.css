@@ -1,0 +1,260 @@
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap');
+
+/* ── CSS Variables ── */
+:root {
+  --bg-primary:     #f5f2eb;
+  --bg-secondary:   #ede9e0;
+  --bg-card:        #ffffff;
+  --accent-gold:    #b8860b;
+  --accent-red:     #c0392b;
+  --accent-dim:     #c8a96e;
+  --text-primary:   #1a1a18;
+  --text-secondary: #4a4640;
+  --text-muted:     #9a9488;
+  --border:         #d8d2c4;
+  --shadow:         0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+/* ── Reset & Base ── */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: 'Crimson Pro', Georgia, serif;
+  font-size: 18px;
+  font-weight: 300;
+  line-height: 1.7;
+  min-height: 100vh;
+
+  /* Subtle warm paper texture */
+  background-image:
+    radial-gradient(ellipse at 20% 50%, rgba(184, 134, 11, 0.04) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 20%, rgba(192, 57, 43, 0.03) 0%, transparent 50%);
+}
+
+/* ── Typography ── */
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Bebas Neue', Impact, sans-serif;
+  font-weight: 400;
+  letter-spacing: 0.05em;
+  color: var(--text-primary);
+  line-height: 1.1;
+  margin-bottom: 0.5rem;
+}
+
+h1 { font-size: 3rem; }
+h2 { font-size: 2.2rem; }
+h3 { font-size: 1.6rem; }
+
+p {
+  color: var(--text-secondary);
+  margin-bottom: 1rem;
+}
+
+a {
+  color: var(--accent-gold);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+a:hover {
+  color: var(--text-primary);
+}
+
+hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 1.5rem 0;
+  opacity: 1;
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--accent-dim);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-gold);
+}
+
+/* ── Bootstrap Overrides ── */
+
+/* Container */
+.container {
+  max-width: 1200px;
+}
+
+/* Badges */
+.badge {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 0.85rem;
+  letter-spacing: 0.08em;
+  padding: 0.4em 0.8em;
+  border-radius: 2px;
+}
+
+.badge.bg-success {
+  background-color: var(--accent-gold) !important;
+  color: var(--bg-primary) !important;
+}
+
+.badge.bg-danger {
+  background-color: var(--accent-red) !important;
+}
+
+.badge.bg-secondary {
+  background-color: var(--bg-secondary) !important;
+  color: var(--text-secondary) !important;
+  border: 1px solid var(--border);
+}
+
+/* Buttons */
+.btn {
+  font-family: 'Bebas Neue', sans-serif;
+  letter-spacing: 0.1em;
+  border-radius: 2px;
+  padding: 0.5em 1.5em;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+}
+
+.btn-primary {
+  background-color: var(--accent-gold) !important;
+  border-color: var(--accent-gold) !important;
+  color: var(--bg-primary) !important;
+}
+
+.btn-primary:hover {
+  background-color: var(--text-primary) !important;
+  border-color: var(--text-primary) !important;
+  color: var(--bg-primary) !important;
+}
+
+.btn-danger {
+  background-color: transparent !important;
+  border-color: var(--accent-red) !important;
+  color: var(--accent-red) !important;
+}
+
+.btn-danger:hover {
+  background-color: var(--accent-red) !important;
+  color: var(--text-primary) !important;
+}
+
+/* Forms */
+.form-control,
+.form-select {
+  background-color: var(--bg-secondary) !important;
+  border: 1px solid var(--border) !important;
+  color: var(--text-primary) !important;
+  border-radius: 2px;
+  font-family: 'Crimson Pro', serif;
+  font-size: 1rem;
+  padding: 0.6rem 0.9rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-control:focus,
+.form-select:focus {
+  background-color: var(--bg-card) !important;
+  border-color: var(--accent-gold) !important;
+  box-shadow: 0 0 0 2px rgba(201, 168, 76, 0.15) !important;
+  color: var(--text-primary) !important;
+  outline: none;
+}
+
+.form-control::placeholder {
+  color: var(--text-muted) !important;
+}
+
+.form-label {
+  font-family: 'Bebas Neue', sans-serif;
+  letter-spacing: 0.08em;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.3rem;
+}
+
+/* Checkbox */
+.form-check-input {
+  background-color: var(--bg-secondary) !important;
+  border-color: var(--border) !important;
+  border-radius: 2px !important;
+}
+
+.form-check-input:checked {
+  background-color: var(--accent-gold) !important;
+  border-color: var(--accent-gold) !important;
+}
+
+.form-check-label {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+}
+
+/* List Group (nav) */
+.list-group-item {
+  background-color: transparent !important;
+  border: none !important;
+  border-left: 2px solid transparent !important;
+  color: var(--text-secondary) !important;
+  font-family: 'Bebas Neue', sans-serif;
+  letter-spacing: 0.08em;
+  font-size: 1rem;
+  padding: 0.6rem 1rem;
+  transition: all 0.2s ease;
+}
+
+.list-group-item:hover,
+.list-group-item-action:hover {
+  background-color: var(--bg-secondary) !important;
+  border-left-color: var(--accent-gold) !important;
+  color: var(--text-primary) !important;
+}
+
+/* Error text */
+.text-danger {
+  color: var(--accent-red) !important;
+  font-size: 0.85rem;
+  font-family: 'Crimson Pro', serif;
+  font-style: italic;
+}
+
+/* Table */
+.table {
+  color: var(--text-secondary);
+  border-color: var(--border);
+}
+
+.table th {
+  font-family: 'Bebas Neue', sans-serif;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  font-weight: 400;
+  border-bottom-color: var(--border) !important;
+}
+
+.table td {
+  border-color: var(--border);
+  vertical-align: middle;
+}
+
+.table-striped > tbody > tr:nth-of-type(odd) > * {
+  background-color: rgba(255, 255, 255, 0.02);
+  color: var(--text-secondary);
+}

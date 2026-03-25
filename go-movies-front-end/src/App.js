@@ -1,3 +1,5 @@
+import './App.css';
+
 import { Link, Outlet, useNavigate } from 'react-router-dom';
 import { useCallback, useEffect, useState } from "react";
 
