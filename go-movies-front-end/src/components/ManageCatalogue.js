@@ -22,7 +22,7 @@ const ManageCatalogue = () => {
         }
         
         // fetch when request the proper bear token
-        fetch(`/admin/movies`, requestOptions)
+        fetch(`/admin/movie`, requestOptions)
         .then((response) => response.json())
         .then((data) => {
             setMovies(data)    
@@ -50,7 +50,7 @@ const ManageCatalogue = () => {
                     {movies.map((m) => (
                         <tr key={m.id}>
                             <td>
-                                <Link to={`/admin/movies/${m.id}`}>
+                                <Link to={`/admin/movie/${m.id}`}>
                                     {m.title}
                                 </Link>
                             </td>

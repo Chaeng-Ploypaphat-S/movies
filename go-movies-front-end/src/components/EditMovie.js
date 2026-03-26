@@ -79,7 +79,49 @@ const EditMovie = () => {
                 })
                 .catch((err) => console.log(err));
         } else {
-            // edit an existing one
+            const headers = new Headers();
+            headers.append("Content-Type", "application/json");
+            headers.append("Authorization", "Bearer " + jwtToken);
+
+            const requestOptions = {
+                method: "GET",
+                headers: headers,
+            }
+
+            fetch(`/admin/movie/${id}`, requestOptions)
+                .then((response) => {
+                    if (response.status !== 200) {
+                        setErrors("Invalid repose code: " + response.status)
+                    }
+                    return response.json();
+                })
+                .then((data) => {
+                    // debug
+                    console.log("data from backend:", data);
+
+                    if (!data.movie) {
+                        console.log("movie is undefined, full response:", data);
+                        return;
+                    }
+
+                    // fix release date
+                    data.movie.release_date = data.movie.release_date.split('T')[0]
+                    const checks = []
+                    data.genres.forEach(g => {
+                        var ch = false
+                        if (data.movie.genres_array.indexOf(g.id) !== -1) {
+                            ch = true
+                        } 
+                        checks.push({id: g.id, checked: ch, genre: g.genre})
+                    })
+                    setMovie({
+                        ...data.movie,
+                        genres: checks
+                    })
+                })
+                .catch(err => {
+                    console.log(err)
+                })
         }
     }, [id, jwtToken, navigate]);
 
@@ -131,7 +173,7 @@ const EditMovie = () => {
             credentials: "include",
         };
 
-        fetch(`/admin/movies/${movie.id}`, requestOptions)
+        fetch(`/admin/movie/${movie.id}`, requestOptions)
             .then((response) => response.json())
             .then((data) => {
                 if (data.error) {

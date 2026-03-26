@@ -35,9 +35,9 @@ func (app *application) routes() http.Handler {
 	mux.Route("/admin", func(mux chi.Router) {
 		mux.Use(app.authRequired)
 
-		mux.Get("/movies", app.MovieCatalogue)
-		mux.Get("/movies/{id}", app.MovieForEdit)
-		mux.Put("/movies/0", app.InsertMovie)
+		mux.Get("/movie", app.MovieCatalogue)
+		mux.Get("/movie/{id}", app.MovieForEdit)
+		mux.Put("/movie/0", app.InsertMovie)
 	})
 
 	return mux
