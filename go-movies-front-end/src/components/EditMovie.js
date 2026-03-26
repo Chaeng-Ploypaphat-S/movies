@@ -20,6 +20,7 @@ const EditMovie = () => {
         { id: "R",    value: "R" },
         { id: "NC17", value: "NC17" },
         { id: "18A",  value: "18A" },
+        { id: "PG-13", value: "PG-13"}
     ];
 
     const hasError = (key) => errors.indexOf(key) !== -1;
@@ -249,6 +250,7 @@ const EditMovie = () => {
                 <Select
                     title={"MPAA Rating"}
                     name={"mpaa_rating"}
+                    value={movie.mpaa_rating}
                     options={mpaaOptions}
                     onChange={handleChange("mpaa_rating")}
                     placeHolder={"Choose..."}
