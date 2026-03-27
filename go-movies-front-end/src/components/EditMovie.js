@@ -8,23 +8,17 @@ import Swal from "sweetalert2";
 import TextArea from "./form/TextArea";
 
 const EditMovie = () => {
+
+    // ── Routing & Auth ─────────────────────────────────────
     const navigate = useNavigate();
     const { jwtToken } = useOutletContext();
+    let { id } = useParams();
+    if (id === undefined) id = 0;
 
+    // ── State ──────────────────────────────────────────────
+    const [error, setError]   = useState(null);
     const [errors, setErrors] = useState([]);
-
-    const mpaaOptions = [
-        { id: "G",    value: "G" },
-        { id: "PG",   value: "PG" },
-        { id: "PG13", value: "PG13" },
-        { id: "R",    value: "R" },
-        { id: "NC17", value: "NC17" },
-        { id: "18A",  value: "18A" },
-    ];
-
-    const hasError = (key) => errors.indexOf(key) !== -1;
-
-    const [movie, setMovie] = useState({
+    const [movie, setMovie]   = useState({
         id: 0,
         title: "",
         release_date: "",
@@ -35,11 +29,34 @@ const EditMovie = () => {
         genres_array: [],
     });
 
-    let { id } = useParams();
-    if (id === undefined) {
-        id = 0;
-    }
+    // ── Constants ──────────────────────────────────────────
+    const mpaaOptions = [
+        { id: "G",    value: "G"    },
+        { id: "PG",   value: "PG"   },
+        { id: "PG13", value: "PG13" },
+        { id: "R",    value: "R"    },
+        { id: "NC17", value: "NC17" },
+        { id: "18A",  value: "18A"  },
+    ];
 
+    // ── Helpers ────────────────────────────────────────────
+    const hasError = (key) => errors.indexOf(key) !== -1;
+
+    const buildAuthHeaders = () => {
+        const headers = new Headers();
+        headers.append("Content-Type", "application/json");
+        headers.append("Authorization", "Bearer " + jwtToken);
+        return headers;
+    };
+
+    const buildGenreChecks = (allGenres, genresArray) =>
+        allGenres.map((g) => ({
+            id: g.id,
+            genre: g.genre,
+            checked: genresArray.indexOf(g.id) !== -1,
+        }));
+
+    // ── Data Fetching ──────────────────────────────────────
     useEffect(() => {
         if (jwtToken === "") {
             navigate("/login");
@@ -47,6 +64,7 @@ const EditMovie = () => {
         }
 
         if (id === 0) {
+            // new movie — reset form and load genres
             setMovie({
                 id: 0,
                 title: "",
@@ -58,136 +76,52 @@ const EditMovie = () => {
                 genres_array: [],
             });
 
-            const requestOptions = {
+            fetch(`/genres`, {
                 method: "GET",
                 headers: new Headers({ "Content-Type": "application/json" }),
-            };
-
-            fetch(`/genres`, requestOptions)
-                .then((response) => response.json())
+            })
+                .then((res) => res.json())
                 .then((data) => {
                     const checks = data.map((g) => ({
                         id: g.id,
                         checked: false,
                         genre: g.genre,
                     }));
-                    setMovie((m) => ({
-                        ...m,
-                        genres: checks,
-                        genres_array: [],
-                    }));
+                    setMovie((m) => ({ ...m, genres: checks, genres_array: [] }));
                 })
                 .catch((err) => console.log(err));
+
         } else {
-            const headers = new Headers();
-            headers.append("Content-Type", "application/json");
-            headers.append("Authorization", "Bearer " + jwtToken);
-
-            const requestOptions = {
+            // edit existing movie
+            fetch(`/admin/movie/${id}`, {
                 method: "GET",
-                headers: headers,
-            }
-
-            fetch(`/admin/movie/${id}`, requestOptions)
-                .then((response) => {
-                    if (response.status !== 200) {
-                        setErrors("Invalid response code:" + response.status)
+                headers: buildAuthHeaders(),
+            })
+                .then((res) => {
+                    if (res.status !== 200) {
+                        setError("Invalid response code: " + res.status);
                     }
-                    return response.json();
+                    return res.json();
                 })
                 .then((data) => {
-                    // debug
-                    console.log("data from backend:", data);
-
                     if (!data.movie) {
-                        console.log("movie is undefined, full response:", data);
+                        setError("Movie not found");
                         return;
                     }
 
-                    // fix release date
-                    data.movie.release_date = new Date(data.movie.release_date).toISOString().split('T')[0];
+                    // strip time from date for the date input
+                    data.movie.release_date = data.movie.release_date.split("T")[0];
 
-                    const checks = [];
-                    data.genres.forEach(g => {
-                        if (data.movie.genres_array.indexOf(g.id) !== -1) {
-                            checks.push({ id: g.id, checked: true, genre: g.genre });
-                        } else {
-                            checks.push({ id: g.id, checked: false, genre: g.genre });
-                        }
-                    });
-
-                    console.log("New checks: ", checks);
                     setMovie({
                         ...data.movie,
-                        genres: checks
-                    })
+                        genres: buildGenreChecks(data.genres, data.movie.genres_array),
+                    });
                 })
-                .catch(err => {
-                    console.log(err);
-                })
+                .catch((err) => console.log(err));
         }
     }, [id, jwtToken, navigate]);
 
-    const handleSubmit = (event) => {
-        event.preventDefault();
-
-        let errors = [];
-        const required = [
-            { field: movie.title,        name: "title" },
-            { field: movie.release_date, name: "release_date" },
-            { field: movie.runtime,      name: "runtime" },
-            { field: movie.description,  name: "description" },
-            { field: movie.mpaa_rating,  name: "mpaa_rating" },
-        ];
-
-        required.forEach((obj) => {
-            if (obj.field === "") errors.push(obj.name);
-        });
-
-        if (movie.genres_array.length === 0) {
-            Swal.fire({
-                title: "Error!",
-                text: "You must choose at least one genre",
-                icon: "error",
-                confirmButtonText: "OK",
-            });
-            errors.push("genres");
-        }
-
-        setErrors(errors);
-        if (errors.length > 0) return false;
-
-        const headers = new Headers();
-        headers.append("Content-Type", "application/json");
-        headers.append("Authorization", "Bearer " + jwtToken);
-
-        const method = movie.id > 0 ? "PATCH" : "PUT";
-
-        const requestBody = {
-            ...movie,
-            release_date: new Date(movie.release_date).toISOString(),
-            runtime: parseInt(movie.runtime, 10),
-        };
-
-        const requestOptions = {
-            body: JSON.stringify(requestBody),
-            method: method,
-            headers: headers,
-            credentials: "include",
-        };
-
-        fetch(`/admin/movie/${movie.id}`, requestOptions)
-            .then((response) => response.json())
-            .then((data) => {
-                if (data.error) {
-                    console.log(data.error);
-                } else {
-                    navigate("/manage-catalogue");
-                }
-            })
-            .catch((err) => console.log(err));
-    };
-
+    // ── Event Handlers ─────────────────────────────────────
     const handleChange = () => (event) => {
         const { name, value } = event.target;
         setMovie({ ...movie, [name]: value });
@@ -207,14 +141,101 @@ const EditMovie = () => {
         setMovie({ ...movie, genres_array: tmpIDs });
     };
 
-    // split genres into two columns
-    if (movie.genres.length === 0) {
-        return <div>Error: problem with movie data</div>
-    }
+    const handleSubmit = (event) => {
+        event.preventDefault();
 
-    const half = Math.ceil(movie.genres.length / 2);
+        // validate required fields
+        let errors = [];
+        const required = [
+            { field: movie.title,        name: "title"        },
+            { field: movie.release_date, name: "release_date" },
+            { field: movie.runtime,      name: "runtime"      },
+            { field: movie.description,  name: "description"  },
+            { field: movie.mpaa_rating,  name: "mpaa_rating"  },
+        ];
+        required.forEach((obj) => {
+            if (obj.field === "") errors.push(obj.name);
+        });
+
+        // validate at least one genre selected
+        if (movie.genres_array.length === 0) {
+            Swal.fire({
+                title: "Error!",
+                text: "You must choose at least one genre",
+                icon: "error",
+                confirmButtonText: "OK",
+            });
+            errors.push("genres");
+        }
+
+        setErrors(errors);
+        if (errors.length > 0) return false;
+
+        // submit to backend
+        const method = movie.id > 0 ? "PATCH" : "PUT";
+        const requestBody = {
+            ...movie,
+            release_date: new Date(movie.release_date).toISOString(),
+            runtime: parseInt(movie.runtime, 10),
+        };
+
+        fetch(`/admin/movie/${movie.id}`, {
+            method: method,
+            headers: buildAuthHeaders(),
+            credentials: "include",
+            body: JSON.stringify(requestBody),
+        })
+            .then((res) => res.json())
+            .then((data) => {
+                if (data.error) {
+                    console.log(data.error);
+                } else {
+                    navigate("/manage-catalogue");
+                }
+            })
+            .catch((err) => console.log(err));
+    };
+
+    const confirmDelete = (title) => {
+        Swal.fire({
+            title: `Delete "${title}"?`,
+            text: "This cannot be undone!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: '#d33',
+            confirmButtonText: "Yes, delete this movie",
+        }).then((result) => {
+            if (result.isConfirmed) {
+                let headers = new Headers();
+                headers.append("Authorization", "Bearer " + jwtToken)
+                
+                fetch(`/admin/movie/${movie.id}`, {
+                    method: "DELETE",
+                    headers: headers,
+                })
+                .then((res) => res.json())
+                .then((data) => {
+                    if (data.error) {
+                        console.log(data.error);
+                    } else {
+                        navigate("/manage-catalogue");
+                    }
+                })
+                .catch((err) => console.log(err));
+            }
+        });
+    };
+
+    // ── Derived Values ─────────────────────────────────────
+    const half        = Math.ceil(movie.genres.length / 2);
     const leftGenres  = movie.genres.slice(0, half);
     const rightGenres = movie.genres.slice(half);
+
+    // ── Render ─────────────────────────────────────────────
+    if (error) {
+        return <div className="text-danger">Error: {error}</div>;
+    }
 
     return (
         <div>
@@ -313,6 +334,14 @@ const EditMovie = () => {
 
                 <hr />
                 <button className="btn btn-primary">Save</button>
+                {movie.id > 0 &&
+                    <a href="#!"
+                        className="btn btn-danger ms-2"
+                        onClick={() => confirmDelete(movie.title)}
+                    >
+                        Delete
+                    </a>
+                }
                 <hr />
             </form>
         </div>
