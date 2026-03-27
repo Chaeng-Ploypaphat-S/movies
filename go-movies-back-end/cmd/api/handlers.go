@@ -291,6 +291,26 @@ func (app *application) UpdateMovie(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+func (app *application) DeleteMovie(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.Atoi(chi.URLParam(r, "id"))
+	if err != nil {
+		log.Println("DeleteMovie: failed to retrieve:", err)
+		return
+	}
+
+	err = app.DB.DeleteMovie(id)
+	if err != nil {
+		app.errorJSON(w, err)
+	}
+
+	resp := JSONResponse{
+		Error:   false,
+		Message: "movie daleted",
+	}
+
+	app.writeJSON(w, http.StatusAccepted, resp)
+}
+
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
 // getPoster fetches the movie poster path from The Movie DB API.
