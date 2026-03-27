@@ -84,10 +84,6 @@ func (app *application) authenticate(w http.ResponseWriter, r *http.Request) {
 	refreshCookie := app.auth.GetRefreshCookie(tokens.RefreshToken)
 	http.SetCookie(w, refreshCookie)
 
-	fmt.Print("handler.go")
-	fmt.Print(tokens)
-	log.Printf("token pairs: %+v\n", tokens)
-
 	app.writeJSON(w, http.StatusAccepted, tokens)
 }
 
@@ -198,6 +194,9 @@ func (app *application) MovieForEdit(w http.ResponseWriter, r *http.Request) {
 		movie,
 		genres,
 	}
+
+	log.Println(payload.Genres)
+
 	// write the json while ignore the error
 	_ = app.writeJSON(w, http.StatusOK, payload)
 }
@@ -301,4 +300,42 @@ func (app *application) getPoster(movie models.Movie) models.Movie {
 	}
 
 	return movie
+}
+
+func (app *application) UpdateMovie(w http.ResponseWriter, r *http.Request) {
+	var requestPayload models.Movie
+
+	err := app.readJSON(w, r, &requestPayload)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("failed to parse login credentials from request body: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	movie, err := app.DB.OneMovie(requestPayload.ID)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("failed to fetch movie with id %d from database: %w", requestPayload.ID, err), http.StatusNotFound)
+		return
+	}
+
+	movie.Title = requestPayload.Title
+	movie.ReleaseDate = requestPayload.ReleaseDate
+	movie.Description = requestPayload.Description
+	movie.MPAARating = requestPayload.MPAARating
+	movie.RunTime = requestPayload.RunTime
+	movie.UpdatedAt = time.Now()
+
+	err = app.DB.UpdateMovie(*movie)
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+
+	err = app.DB.UpdateMovieGenres(movie.ID, requestPayload.GenresArray)
+
+	resp := JSONResponse{
+		Error:   false,
+		Message: "movie updated",
+	}
+
+	app.writeJSON(w, http.StatusAccepted, resp)
 }

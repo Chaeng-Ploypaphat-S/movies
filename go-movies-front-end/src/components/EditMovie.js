@@ -20,7 +20,6 @@ const EditMovie = () => {
         { id: "R",    value: "R" },
         { id: "NC17", value: "NC17" },
         { id: "18A",  value: "18A" },
-        { id: "PG-13", value: "PG-13"}
     ];
 
     const hasError = (key) => errors.indexOf(key) !== -1;
@@ -92,7 +91,7 @@ const EditMovie = () => {
             fetch(`/admin/movie/${id}`, requestOptions)
                 .then((response) => {
                     if (response.status !== 200) {
-                        setErrors("Invalid repose code: " + response.status)
+                        setErrors("Invalid response code:" + response.status)
                     }
                     return response.json();
                 })
@@ -106,22 +105,25 @@ const EditMovie = () => {
                     }
 
                     // fix release date
-                    data.movie.release_date = data.movie.release_date.split('T')[0]
-                    const checks = []
+                    data.movie.release_date = new Date(data.movie.release_date).toISOString().split('T')[0];
+
+                    const checks = [];
                     data.genres.forEach(g => {
-                        var ch = false
                         if (data.movie.genres_array.indexOf(g.id) !== -1) {
-                            ch = true
-                        } 
-                        checks.push({id: g.id, checked: ch, genre: g.genre})
-                    })
+                            checks.push({ id: g.id, checked: true, genre: g.genre });
+                        } else {
+                            checks.push({ id: g.id, checked: false, genre: g.genre });
+                        }
+                    });
+
+                    console.log("New checks: ", checks);
                     setMovie({
                         ...data.movie,
                         genres: checks
                     })
                 })
                 .catch(err => {
-                    console.log(err)
+                    console.log(err);
                 })
         }
     }, [id, jwtToken, navigate]);
@@ -206,6 +208,10 @@ const EditMovie = () => {
     };
 
     // split genres into two columns
+    if (movie.genres.length === 0) {
+        return <div>Error: problem with movie data</div>
+    }
+
     const half = Math.ceil(movie.genres.length / 2);
     const leftGenres  = movie.genres.slice(0, half);
     const rightGenres = movie.genres.slice(half);

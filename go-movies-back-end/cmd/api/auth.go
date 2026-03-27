@@ -3,7 +3,6 @@ package main
 import (
 	"errors"
 	"fmt"
-	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -79,7 +78,6 @@ func (j *Auth) GenerateTokenPair(user *jwtUser) (TokenPairs, error) {
 		Token:        signedAccessToken,
 		RefreshToken: signedRefreshToken,
 	}
-	log.Printf("token pairs: %+v\n", tokenPairs)
 
 	// Return TokenPairs
 	return tokenPairs, nil
