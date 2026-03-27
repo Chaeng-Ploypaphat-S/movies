@@ -17,6 +17,8 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 )
 
+// ── Home ───────────────────────────────────────────────────────────────────────
+
 func (app *application) Home(w http.ResponseWriter, r *http.Request) {
 	var payload = struct {
 		Status  string `json:"status"`
@@ -31,25 +33,17 @@ func (app *application) Home(w http.ResponseWriter, r *http.Request) {
 	_ = app.writeJSON(w, http.StatusOK, payload)
 }
 
-func (app *application) AllMovies(w http.ResponseWriter, r *http.Request) {
-	movies, err := app.DB.AllMovies()
-	if err != nil {
-		app.errorJSON(w, err)
-		return
-	}
-
-	_ = app.writeJSON(w, http.StatusOK, movies)
-}
+// ── Auth ───────────────────────────────────────────────────────────────────────
 
 func (app *application) authenticate(w http.ResponseWriter, r *http.Request) {
-	// read json payload from the client
 	var requestPayload struct {
 		Email    string `json:"email"`
 		Password string `json:"password"`
 	}
+
 	err := app.readJSON(w, r, &requestPayload)
 	if err != nil {
-		app.errorJSON(w, err, http.StatusBadRequest)
+		app.errorJSON(w, fmt.Errorf("failed to parse login credentials from request body: %w", err), http.StatusBadRequest)
 		return
 	}
 
@@ -67,34 +61,28 @@ func (app *application) authenticate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// create a jwt user (fake it for now)
 	u := jwtUser{
 		ID:        user.ID,
 		FirstName: user.FirstName,
 		LastName:  user.LastName,
 	}
 
-	// generate tokens
 	tokens, err := app.auth.GenerateTokenPair(&u)
 	if err != nil {
 		app.errorJSON(w, err)
 		return
 	}
 
-	refreshCookie := app.auth.GetRefreshCookie(tokens.RefreshToken)
-	http.SetCookie(w, refreshCookie)
-
+	http.SetCookie(w, app.auth.GetRefreshCookie(tokens.RefreshToken))
 	app.writeJSON(w, http.StatusAccepted, tokens)
 }
 
 func (app *application) refreshToken(w http.ResponseWriter, r *http.Request) {
 	for _, cookie := range r.Cookies() {
 		if cookie.Name == app.auth.CookieName {
-			// get the refresh token from the cookie
 			claims := &Claims{}
 			refreshToken := cookie.Value
 
-			// parse the token to get the claims
 			_, err := jwt.ParseWithClaims(refreshToken, claims, func(token *jwt.Token) (interface{}, error) {
 				return []byte(app.JWTSecret), nil
 			})
@@ -103,7 +91,6 @@ func (app *application) refreshToken(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
-			// get the user id from the token claims
 			userID, err := strconv.Atoi(claims.Subject)
 			if err != nil {
 				app.errorJSON(w, errors.New("unknown user (an issue with the token claims)"), http.StatusUnauthorized)
@@ -129,24 +116,25 @@ func (app *application) refreshToken(w http.ResponseWriter, r *http.Request) {
 			}
 
 			http.SetCookie(w, app.auth.GetRefreshCookie(tokens.RefreshToken))
-
 			app.writeJSON(w, http.StatusOK, tokens)
 			return
 		}
 	}
+
 	app.errorJSON(w, errors.New("unauthorized"), http.StatusUnauthorized)
 }
 
 func (app *application) logout(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, app.auth.GetExpiredRefreshCookie())
-	resp := JSONResponse{
+	app.writeJSON(w, http.StatusOK, JSONResponse{
 		Error:   false,
 		Message: "logged out",
-	}
-	app.writeJSON(w, http.StatusOK, resp)
+	})
 }
 
-func (app *application) MovieCatalogue(w http.ResponseWriter, r *http.Request) {
+// ── Movies (Public) ────────────────────────────────────────────────────────────
+
+func (app *application) AllMovies(w http.ResponseWriter, r *http.Request) {
 	movies, err := app.DB.AllMovies()
 	if err != nil {
 		app.errorJSON(w, err)
@@ -160,46 +148,20 @@ func (app *application) GetMovie(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	movieID, err := strconv.Atoi(id)
 	if err != nil {
-		app.errorJSON(w, err)
+		app.errorJSON(w, fmt.Errorf("invalid movie id '%s': %w", id, err), http.StatusBadRequest)
 		return
 	}
 
 	movie, err := app.DB.OneMovie(movieID)
 	if err != nil {
-		app.errorJSON(w, err)
+		app.errorJSON(w, fmt.Errorf("failed to fetch movie with id %d from database: %w", movieID, err), http.StatusNotFound)
 		return
 	}
-	// write the json while ignore the error
+
 	_ = app.writeJSON(w, http.StatusOK, movie)
 }
 
-func (app *application) MovieForEdit(w http.ResponseWriter, r *http.Request) {
-	id := chi.URLParam(r, "id")
-	movieID, err := strconv.Atoi(id)
-	if err != nil {
-		app.errorJSON(w, err)
-		return
-	}
-
-	movie, genres, err := app.DB.OneMovieForEdit(movieID)
-	if err != nil {
-		app.errorJSON(w, err)
-		return
-	}
-
-	var payload = struct {
-		Movie  *models.Movie   `json:"movie"`
-		Genres []*models.Genre `json:"genres"`
-	}{
-		movie,
-		genres,
-	}
-
-	log.Println(payload.Genres)
-
-	// write the json while ignore the error
-	_ = app.writeJSON(w, http.StatusOK, payload)
-}
+// ── Genres (Public) ────────────────────────────────────────────────────────────
 
 func (app *application) AllGenres(w http.ResponseWriter, r *http.Request) {
 	genres, err := app.DB.AllGenres()
@@ -211,21 +173,58 @@ func (app *application) AllGenres(w http.ResponseWriter, r *http.Request) {
 	_ = app.writeJSON(w, http.StatusOK, genres)
 }
 
+// ── Movies (Admin) ─────────────────────────────────────────────────────────────
+
+func (app *application) MovieCatalogue(w http.ResponseWriter, r *http.Request) {
+	movies, err := app.DB.AllMovies()
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+
+	_ = app.writeJSON(w, http.StatusOK, movies)
+}
+
+func (app *application) MovieForEdit(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	movieID, err := strconv.Atoi(id)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("invalid movie id '%s': %w", id, err), http.StatusBadRequest)
+		return
+	}
+
+	movie, genres, err := app.DB.OneMovieForEdit(movieID)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("failed to fetch movie with id %d for edit: %w", movieID, err), http.StatusNotFound)
+		return
+	}
+
+	var payload = struct {
+		Movie  *models.Movie   `json:"movie"`
+		Genres []*models.Genre `json:"genres"`
+	}{
+		movie,
+		genres,
+	}
+
+	_ = app.writeJSON(w, http.StatusOK, payload)
+}
+
 func (app *application) InsertMovie(w http.ResponseWriter, r *http.Request) {
 	var movie models.Movie
 
-	// log the raw request body before parsing
-	body, request_err := io.ReadAll(r.Body)
-	if request_err != nil {
-		app.errorJSON(w, fmt.Errorf("failed to read request body: %w", request_err), http.StatusBadRequest)
+	// log raw request body for debugging
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("failed to read request body: %w", err), http.StatusBadRequest)
 		return
 	}
-	log.Println("raw request body:", string(body))
+	log.Println("InsertMovie raw request body:", string(body))
 	r.Body = io.NopCloser(bytes.NewBuffer(body))
 
-	err := app.readJSON(w, r, &movie)
+	err = app.readJSON(w, r, &movie)
 	if err != nil {
-		app.errorJSON(w, fmt.Errorf("failed to read movie payload from request body: %w", err), http.StatusBadRequest)
+		app.errorJSON(w, fmt.Errorf("failed to parse movie payload from request body: %w", err), http.StatusBadRequest)
 		return
 	}
 
@@ -233,11 +232,9 @@ func (app *application) InsertMovie(w http.ResponseWriter, r *http.Request) {
 	movie.CreatedAt = time.Now()
 	movie.UpdatedAt = time.Now()
 
-	// insert the movie
-	fmt.Println("movie before inserting: ", movie)
 	newID, err := app.DB.InsertMovie(movie)
 	if err != nil {
-		app.errorJSON(w, fmt.Errorf("failed to insert movie id %d: %w", newID, err))
+		app.errorJSON(w, fmt.Errorf("failed to insert movie '%s': %w", movie.Title, err))
 		return
 	}
 
@@ -247,15 +244,57 @@ func (app *application) InsertMovie(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp := JSONResponse{
+	app.writeJSON(w, http.StatusAccepted, JSONResponse{
 		Error:   false,
-		Message: fmt.Sprintf("new movie inserted: %d", newID),
-	}
-
-	app.writeJSON(w, http.StatusAccepted, resp)
+		Message: fmt.Sprintf("movie '%s' inserted with id %d", movie.Title, newID),
+	})
 }
 
-// Get 3rd party API, TMDB
+func (app *application) UpdateMovie(w http.ResponseWriter, r *http.Request) {
+	var requestPayload models.Movie
+
+	err := app.readJSON(w, r, &requestPayload)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("failed to parse movie payload from request body: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	movie, err := app.DB.OneMovie(requestPayload.ID)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("failed to fetch movie with id %d from database: %w", requestPayload.ID, err), http.StatusNotFound)
+		return
+	}
+
+	// apply updates
+	movie.Title = requestPayload.Title
+	movie.ReleaseDate = requestPayload.ReleaseDate
+	movie.Description = requestPayload.Description
+	movie.MPAARating = requestPayload.MPAARating
+	movie.RunTime = requestPayload.RunTime
+	movie.UpdatedAt = time.Now()
+
+	err = app.DB.UpdateMovie(*movie)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("failed to update movie '%s' in database: %w", movie.Title, err))
+		return
+	}
+
+	err = app.DB.UpdateMovieGenres(movie.ID, requestPayload.GenresArray)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("failed to update genres for movie '%s': %w", movie.Title, err))
+		return
+	}
+
+	app.writeJSON(w, http.StatusAccepted, JSONResponse{
+		Error:   false,
+		Message: fmt.Sprintf("movie '%s' updated successfully", movie.Title),
+	})
+}
+
+// ── Helpers ────────────────────────────────────────────────────────────────────
+
+// getPoster fetches the movie poster path from The Movie DB API.
+// If the API call fails for any reason, the movie is returned unchanged.
 func (app *application) getPoster(movie models.Movie) models.Movie {
 	type TheMovieDB struct {
 		Page    int `json:"page"`
@@ -270,29 +309,27 @@ func (app *application) getPoster(movie models.Movie) models.Movie {
 
 	req, err := http.NewRequest("GET", theUrl+"&query="+url.QueryEscape(movie.Title), nil)
 	if err != nil {
-		log.Println(err)
+		log.Println("getPoster: failed to build request:", err)
 		return movie
 	}
 
-	// add header
 	req.Header.Add("Accept", "application/json")
 	req.Header.Add("Content-Type", "application/json")
 
 	response, err := client.Do(req)
 	if err != nil {
-		log.Println(err)
+		log.Println("getPoster: failed to call TMDB API:", err)
 		return movie
 	}
 	defer response.Body.Close()
 
 	bodyBytes, err := io.ReadAll(response.Body)
 	if err != nil {
-		log.Println(err)
+		log.Println("getPoster: failed to read TMDB response:", err)
 		return movie
 	}
 
 	var responseObject TheMovieDB
-
 	json.Unmarshal(bodyBytes, &responseObject)
 
 	if len(responseObject.Results) > 0 {
@@ -300,42 +337,4 @@ func (app *application) getPoster(movie models.Movie) models.Movie {
 	}
 
 	return movie
-}
-
-func (app *application) UpdateMovie(w http.ResponseWriter, r *http.Request) {
-	var requestPayload models.Movie
-
-	err := app.readJSON(w, r, &requestPayload)
-	if err != nil {
-		app.errorJSON(w, fmt.Errorf("failed to parse login credentials from request body: %w", err), http.StatusBadRequest)
-		return
-	}
-
-	movie, err := app.DB.OneMovie(requestPayload.ID)
-	if err != nil {
-		app.errorJSON(w, fmt.Errorf("failed to fetch movie with id %d from database: %w", requestPayload.ID, err), http.StatusNotFound)
-		return
-	}
-
-	movie.Title = requestPayload.Title
-	movie.ReleaseDate = requestPayload.ReleaseDate
-	movie.Description = requestPayload.Description
-	movie.MPAARating = requestPayload.MPAARating
-	movie.RunTime = requestPayload.RunTime
-	movie.UpdatedAt = time.Now()
-
-	err = app.DB.UpdateMovie(*movie)
-	if err != nil {
-		app.errorJSON(w, err)
-		return
-	}
-
-	err = app.DB.UpdateMovieGenres(movie.ID, requestPayload.GenresArray)
-
-	resp := JSONResponse{
-		Error:   false,
-		Message: "movie updated",
-	}
-
-	app.writeJSON(w, http.StatusAccepted, resp)
 }
