@@ -12,6 +12,7 @@ import Login from './components/Login';
 import ManageCatalogue from './components/ManageCatalogue';
 import Movie from './components/Movie';
 import Movies from './components/Movies';
+import OneGenre from './components/OneGenre';
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 
@@ -33,6 +34,10 @@ const router = createBrowserRouter([
       {
         path: "/genres",
         element: <Genres />
+      },
+      {
+        path: "/genres/:id",
+        element: <OneGenre />
       },
       {
         path: "/admin/movie/0",
