@@ -4,9 +4,11 @@ import (
 	"backend/internal/models"
 	"context"
 	"database/sql"
+	"fmt"
 	"time"
 )
 
+// ── Connection ─────────────────────────────────────────
 type PostgresDBRepo struct {
 	DB *sql.DB
 }
@@ -53,21 +55,27 @@ func (m *PostgresDBRepo) AllGenres() ([]*models.Genre, error) {
 	return genres, nil
 }
 
-func (m *PostgresDBRepo) AllMovies() ([]*models.Movie, error) {
+// takes zero or more parameters
+func (m *PostgresDBRepo) AllMovies(genre ...int) ([]*models.Movie, error) {
 	// make the db cancel everything after 3 seconds.
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
-	query := `
+	where := ""
+	if len(genre) > 0 {
+		where = fmt.Sprintf("where id in (select movie_id from movies_genres where genre_id = %d)", genre[0])
+	}
+
+	query := fmt.Sprintf(`
 		select 
 			id, title, release_date, runtime,
 			mpaa_rating, description, coalesce(image, ''),
 			created_at, updated_at
 		from
-			movies
+			movies %s
 		order by
 			title
-	`
+	`, where)
 
 	rows, err := m.DB.QueryContext(ctx, query)
 	if err != nil {
@@ -243,6 +251,7 @@ func (m *PostgresDBRepo) OneMovieForEdit(id int) (*models.Movie, []*models.Genre
 	return &movie, allGenres, err
 }
 
+// ── Users ──────────────────────────────────────────────
 func (m *PostgresDBRepo) GetUserByEmail(email string) (*models.User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()

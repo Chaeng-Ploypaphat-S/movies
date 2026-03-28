@@ -4,3 +4,13 @@
 - React JS
 - REST API in GO
 - GraphQL
+
+
+✅ Diagram
+React Frontend
+      ↓
+Go Handlers (business logic via routes)
+      ↓
+Repository (DatabaseRepo interface)
+      ↓
+PostgreSQL

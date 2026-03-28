@@ -18,7 +18,7 @@ type DatabaseRepo interface {
 	AllGenres() ([]*models.Genre, error)
 
 	// ── Movies (Read) ──────────────────────────────────────
-	AllMovies() ([]*models.Movie, error)
+	AllMovies(genre ...int) ([]*models.Movie, error)
 	OneMovie(id int) (*models.Movie, error)
 	OneMovieForEdit(id int) (*models.Movie, []*models.Genre, error)
 

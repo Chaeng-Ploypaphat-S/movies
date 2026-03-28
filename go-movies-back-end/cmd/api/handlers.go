@@ -144,6 +144,23 @@ func (app *application) AllMovies(w http.ResponseWriter, r *http.Request) {
 	_ = app.writeJSON(w, http.StatusOK, movies)
 }
 
+func (app *application) AllMoviesByGenre(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	movieID, err := strconv.Atoi(id)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("invalid movie id '%s': %w", id, err), http.StatusBadRequest)
+		return
+	}
+
+	movies, err := app.DB.AllMovies(movieID)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("failed to fetch movie with id %d from database: %w", movieID, err), http.StatusNotFound)
+		return
+	}
+
+	_ = app.writeJSON(w, http.StatusOK, movies)
+}
+
 func (app *application) GetMovie(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	movieID, err := strconv.Atoi(id)
