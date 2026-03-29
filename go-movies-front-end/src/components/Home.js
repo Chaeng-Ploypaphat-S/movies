@@ -10,7 +10,7 @@ const Home = () => {
 
     // ── Data Fetching ──────────────────────────────────────
     useEffect(() => {
-        fetch(`/movies`, {
+        fetch(`${process.env.REACT_APP_BACKEND}/movies`, {
             method: "GET",
             headers: new Headers({ "Content-Type": "application/json" }),
         })

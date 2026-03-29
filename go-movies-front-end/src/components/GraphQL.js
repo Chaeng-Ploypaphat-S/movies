@@ -29,7 +29,7 @@ const GraphQL = () => {
             headers: headers,
         }
 
-        fetch(`/graphql`, requestOptions)
+        fetch(`${process.env.REACT_APP_BACKEND}/graphql`, requestOptions)
             .then((response) => response.json())
             .then((response) => {
                 let theList = Object.values(response.data.search);
@@ -72,7 +72,7 @@ const GraphQL = () => {
             body: payload,
         }
 
-        fetch(`/graphql`, requestOptions)
+        fetch(`${process.env.REACT_APP_BACKEND}/graphql`, requestOptions)
             .then((response) => response.json())
             .then((response) => {
                 let theList = Object.values(response.data.list);

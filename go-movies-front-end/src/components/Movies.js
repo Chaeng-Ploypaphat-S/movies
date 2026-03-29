@@ -11,7 +11,7 @@ const Movies = () => {
 
     // ── Data Fetching ──────────────────────────────────────
     useEffect(() => {
-        fetch(`http://localhost:8080/movies`, {
+        fetch(`${process.env.REACT_APP_BACKEND}/movies`, {
             method: "GET",
             headers: new Headers({ "Content-Type": "application/json" }),
         })

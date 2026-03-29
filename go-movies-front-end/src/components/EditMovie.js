@@ -77,7 +77,7 @@ const EditMovie = () => {
                 genres_array: [],
             });
 
-            fetch(`/genres`, {
+            fetch(`${process.env.REACT_APP_BACKEND}/genres`, {
                 method: "GET",
                 headers: new Headers({ "Content-Type": "application/json" }),
             })
@@ -94,7 +94,7 @@ const EditMovie = () => {
 
         } else {
             // edit existing movie
-            fetch(`/admin/movie/${id}`, {
+            fetch(`${process.env.REACT_APP_BACKEND}/admin/movie/${id}`, {
                 method: "GET",
                 headers: buildAuthHeaders(jwtToken),
             })
@@ -180,7 +180,7 @@ const EditMovie = () => {
             runtime: parseInt(movie.runtime, 10),
         };
 
-        fetch(`/admin/movie/${movie.id}`, {
+        fetch(`${process.env.REACT_APP_BACKEND}/admin/movie/${movie.id}`, {
             method: method,
             headers: buildAuthHeaders(jwtToken),
             credentials: "include",
@@ -211,7 +211,7 @@ const EditMovie = () => {
                 let headers = new Headers();
                 headers.append("Authorization", "Bearer " + jwtToken)
                 
-                fetch(`/admin/movie/${movie.id}`, {
+                fetch(`${process.env.REACT_APP_BACKEND}/admin/movie/${movie.id}`, {
                     method: "DELETE",
                     headers: headers,
                 })

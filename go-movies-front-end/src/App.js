@@ -21,7 +21,7 @@ function App() {
 
   // ── Auth Handlers ──────────────────────────────────────
   const logOut = () => {
-      fetch(`/logout`, { method: "GET", credentials: "include" })
+      fetch(`${process.env.REACT_APP_BACKEND}/logout`, { method: "GET", credentials: "include" })
           .catch((error) => console.log("error logging out", error))
           .finally(() => {
               setJwtToken("");
@@ -33,7 +33,7 @@ function App() {
   const toggleRefresh = useCallback((status) => {
       if (status) {
           tickIntervalRef.current = setInterval(() => {
-              fetch("/refresh", { method: "GET", credentials: "include" })
+              fetch(`${process.env.REACT_APP_BACKEND}/refresh`, { method: "GET", credentials: "include" })
                   .then((response) => {
                       if (response.status === 401) return;
                       return response.json();
@@ -54,7 +54,7 @@ function App() {
   // ── Effects ────────────────────────────────────────────
   useEffect(() => {
       if (jwtToken === "") {
-          fetch("/refresh", { method: "GET", credentials: "include" })
+          fetch(`${process.env.REACT_APP_BACKEND}/refresh`, { method: "GET", credentials: "include" })
               .then((response) => {
                   if (response.status === 401) return;
                   return response.json();

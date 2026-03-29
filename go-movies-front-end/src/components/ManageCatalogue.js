@@ -22,7 +22,7 @@ const ManageCatalogue = () => {
         }
         
         // fetch when request the proper bear token
-        fetch(`/admin/movie`, requestOptions)
+        fetch(`${process.env.REACT_APP_BACKEND}/admin/movie`, requestOptions)
         .then((response) => response.json())
         .then((data) => {
             setMovies(data)    
