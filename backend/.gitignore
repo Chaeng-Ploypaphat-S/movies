@@ -36,7 +36,9 @@ Thumbs.db
 .vscode/
 .idea/
 *.swp
-*.s*
 
 # Postgres data
 postgres-data/
+
+# SQL dump files
+*.sql
