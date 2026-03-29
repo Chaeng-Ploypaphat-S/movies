@@ -7,11 +7,18 @@ import Select from "./form/Select";
 import Swal from "sweetalert2";
 import TextArea from "./form/TextArea";
 
+const buildAuthHeaders = (jwtToken) => {
+    const headers = new Headers();
+    headers.append("Content-Type", "application/json");
+    headers.append("Authorization", "Bearer " + jwtToken);
+    return headers;
+};
+
 const EditMovie = () => {
 
     // ── Routing & Auth ─────────────────────────────────────
     const navigate = useNavigate();
-    const { jwtToken } = useOutletContext();
+    const { jwtToken, isLoading } = useOutletContext();
     let { id } = useParams();
     if (id === undefined) id = 0;
 
@@ -42,13 +49,6 @@ const EditMovie = () => {
     // ── Helpers ────────────────────────────────────────────
     const hasError = (key) => errors.indexOf(key) !== -1;
 
-    const buildAuthHeaders = () => {
-        const headers = new Headers();
-        headers.append("Content-Type", "application/json");
-        headers.append("Authorization", "Bearer " + jwtToken);
-        return headers;
-    };
-
     const buildGenreChecks = (allGenres, genresArray) =>
         allGenres.map((g) => ({
             id: g.id,
@@ -58,6 +58,7 @@ const EditMovie = () => {
 
     // ── Data Fetching ──────────────────────────────────────
     useEffect(() => {
+        if (isLoading) return;
         if (jwtToken === "") {
             navigate("/login");
             return;
@@ -95,7 +96,7 @@ const EditMovie = () => {
             // edit existing movie
             fetch(`/admin/movie/${id}`, {
                 method: "GET",
-                headers: buildAuthHeaders(),
+                headers: buildAuthHeaders(jwtToken),
             })
                 .then((res) => {
                     if (res.status !== 200) {
@@ -119,7 +120,7 @@ const EditMovie = () => {
                 })
                 .catch((err) => console.log(err));
         }
-    }, [id, jwtToken, navigate]);
+    }, [id, jwtToken, navigate, isLoading]);
 
     // ── Event Handlers ─────────────────────────────────────
     const handleChange = () => (event) => {
@@ -181,7 +182,7 @@ const EditMovie = () => {
 
         fetch(`/admin/movie/${movie.id}`, {
             method: method,
-            headers: buildAuthHeaders(),
+            headers: buildAuthHeaders(jwtToken),
             credentials: "include",
             body: JSON.stringify(requestBody),
         })
