@@ -2,37 +2,33 @@ import { useEffect, useState } from "react";
 
 import { Link } from "react-router-dom";
 
+const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/w92";
+
 const Movies = () => {
+
+    // ── State ──────────────────────────────────────────────
     const [movies, setMovies] = useState([]);
 
+    // ── Data Fetching ──────────────────────────────────────
     useEffect(() => {
-        const headers = new Headers()
-        headers.append("Content-Type", "application/json")
-
-        const requestOptions = {
+        fetch(`http://localhost:8080/movies`, {
             method: "GET",
-            headers: headers
-        }
-
-        fetch(`http://localhost:8080/movies`, requestOptions)
-        .then((response) => response.json())
-        .then((data) => {
-            setMovies(data)    
+            headers: new Headers({ "Content-Type": "application/json" }),
         })
-        .catch(err =>{
-            console.log(err)
-        })
-
+            .then((res) => res.json())
+            .then((data) => setMovies(data))
+            .catch((err) => console.log(err));
     }, []);
 
+    // ── Render ─────────────────────────────────────────────
     return (
-        <>
-        <div className="text-center">
-            <h2>Movie</h2>
+        <div>
+            <h2>Movies</h2>
             <hr />
-            <table className="table table-striped table-hover">
+            <table className="table table-striped table-hover align-middle">
                 <thead>
                     <tr>
+                        <th style={{ width: "50px" }}></th>
                         <th>Movie</th>
                         <th>Release Date</th>
                         <th>Rating</th>
@@ -42,19 +38,46 @@ const Movies = () => {
                     {movies.map((m) => (
                         <tr key={m.id}>
                             <td>
+                                {m.image ? (
+                                    <img
+                                        src={`${TMDB_IMAGE_BASE}${m.image}`}
+                                        alt={m.title}
+                                        style={{
+                                            width: "40px",
+                                            height: "60px",
+                                            objectFit: "cover",
+                                            borderRadius: "4px",
+                                        }}
+                                    />
+                                ) : (
+                                    <div style={{
+                                        width: "40px",
+                                        height: "60px",
+                                        borderRadius: "4px",
+                                        backgroundColor: "var(--bg-secondary)",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        fontSize: "0.6rem",
+                                        color: "var(--text-muted)",
+                                    }}>
+                                        N/A
+                                    </div>
+                                )}
+                            </td>
+                            <td>
                                 <Link to={`/movies/${m.id}`}>
                                     {m.title}
                                 </Link>
                             </td>
-                            <td>{m.release_date}</td>
+                            <td>{new Date(m.release_date).toLocaleDateString()}</td>
                             <td>{m.mpaa_rating}</td>
                         </tr>
                     ))}
                 </tbody>
             </table>
         </div>
-        </>
     );
-}
+};
 
 export default Movies;
