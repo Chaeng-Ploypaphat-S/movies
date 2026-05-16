@@ -13,5 +13,6 @@
 - PostgreSQL
 
 ✅ [Link to the site](https://spa-react-go.vercel.app/)
+**The live database is currently not available. Working on creating some seeded data for a live demo. 
 
 ![alt text](image.png)
